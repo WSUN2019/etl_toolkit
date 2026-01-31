@@ -1,0 +1,10 @@
+ml-webapp/
+├─ Dockerfile
+├─ app/
+│  ├─ main.py
+│  ├─ model.py
+│  └─ requirements.txt
+├─ docker-compose.yml
+├─ project_structure.txt
+├─ public/
+└─ readme.md

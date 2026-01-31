@@ -1,0 +1,1 @@
+# This file makes FolderTreeMapper a Python package
