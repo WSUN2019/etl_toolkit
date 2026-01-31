@@ -25,7 +25,7 @@ folder_path = st.text_input(
 # Input optional output path
 output_path = st.text_input(
     "Optional: Enter full output file path (including filename):",
-    ""
+    r"C:\Users\patrick-starfish\doc"
 )
 
 # Default output folder
