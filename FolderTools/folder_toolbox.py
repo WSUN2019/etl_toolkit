@@ -19,7 +19,7 @@ It saves the structure to a `.txt` file, shows a preview, and outputs statistics
 # Input folder path
 folder_path = st.text_input(
     "Enter folder path to map:",
-    r"C:\Users\spongebob\app-folder\"
+    r"C:\Users\spongebob\app-folder"
 )
 
 # Input optional output path
