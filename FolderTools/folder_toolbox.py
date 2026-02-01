@@ -1,6 +1,7 @@
 # created on 1/31/2026 WSUN
-# this is a simple portal in python streamlit to access various helper tool files
-# first one is FolderTreeMapper.py
+# Simple Streamlit portal to access various helper tool files
+# First tool: FolderTreeMapper.py
+
 import os
 import streamlit as st
 import pandas as pd
@@ -19,18 +20,19 @@ It saves the structure to a `.txt` file, shows a preview, and outputs statistics
 # Input folder path
 folder_path = st.text_input(
     "Enter folder path to map:",
-    r"C:\Users\spongebob\app-folder"
+    r"C:\Users\username\folder-to-map"
 )
 
 # Input optional output path
 output_path = st.text_input(
-    "Optional: Enter full output file path (including filename):",
-    r"C:\Users\patrick-starfish\run-stampede-with-first-words"
+    "Optional: Enter full output file path (including filename or folder):",
+    r"C:\Users\username\output-tree-map"
 )
 
 # Default output folder
 default_output_folder = os.path.join(os.getcwd(), "FolderTreeMapperOutput")
 os.makedirs(default_output_folder, exist_ok=True)
+
 
 def get_folder_stats(root_path):
     """Return folder stats: file count, folder count, counts by extension."""
@@ -48,39 +50,45 @@ def get_folder_stats(root_path):
     return file_count, folder_count, dict(ext_count)
 
 
+def generate_output_path(folder_path, output_path_input):
+    """Return a safe output file path with .txt and timestamp."""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # If user provided nothing → use default folder
+    if not output_path_input.strip():
+        folder_name = os.path.basename(folder_path.rstrip("\\/"))
+        return os.path.join(default_output_folder, f"{folder_name}_folder_structure_{timestamp}.txt")
+
+    # If path exists and is a folder → create file inside it
+    if os.path.isdir(output_path_input):
+        folder_name = os.path.basename(folder_path.rstrip("\\/"))
+        return os.path.join(output_path_input, f"{folder_name}_folder_structure_{timestamp}.txt")
+
+    # If path is a file name → append .txt if missing
+    final_path = output_path_input
+    if not final_path.lower().endswith(".txt"):
+        final_path += ".txt"
+
+    # Ensure timestamp is in the filename
+    base, ext = os.path.splitext(final_path)
+    final_path = f"{base}_{timestamp}{ext}"
+    return final_path
+
+
 if st.button("Generate Folder Structure"):
     if not os.path.isdir(folder_path):
         st.error("❌ Invalid folder path. Please check the folder path and try again.")
     else:
-        # --- Determine output file path ---
-        if output_path.strip():
-            final_output_path = output_path
-        else:
-            folder_name = os.path.basename(folder_path.rstrip("\\/"))
-            final_output_path = os.path.join(default_output_folder, f"{folder_name}_folder_structure.txt")
+        final_output_path = generate_output_path(folder_path, output_path)
 
-        # --- Save folder structure safely ---
         try:
-            # Append timestamp if file exists
-            if os.path.exists(final_output_path):
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                base, ext = os.path.splitext(final_output_path)
-                final_output_path = f"{base}_{timestamp}{ext}"
-
             FolderTreeMapper.save_folder_structure(folder_path, final_output_path)
             st.success(f"✅ Folder structure saved to `{final_output_path}`")
-            st.markdown(f"[Open file](file:///{final_output_path.replace(os.sep, '/')})")
 
         except PermissionError:
-            # Permission denied → fallback to default folder
-            folder_name = os.path.basename(folder_path.rstrip("\\/"))
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            final_output_path = os.path.join(
-                default_output_folder, f"{folder_name}_folder_structure_{timestamp}.txt"
-            )
-            FolderTreeMapper.save_folder_structure(folder_path, final_output_path)
-            st.warning(f"⚠️ Could not write to specified path. Saved to default folder instead: `{final_output_path}`")
-            st.markdown(f"[Open file](file:///{final_output_path.replace(os.sep, '/')})")
+            fallback_path = os.path.join(default_output_folder, f"folder_structure_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
+            FolderTreeMapper.save_folder_structure(folder_path, fallback_path)
+            st.warning(f"⚠️ Could not write to specified path. Saved to default folder instead: `{fallback_path}`")
 
         except Exception as e:
             st.error(f"❌ Unexpected error: {e}")
@@ -88,16 +96,13 @@ if st.button("Generate Folder Structure"):
         # --- Display statistics ---
         file_count, folder_count, ext_count = get_folder_stats(folder_path)
         st.subheader("📊 Folder Statistics")
-
-        # Summary numbers
         st.markdown(f"**Total folders:** {folder_count}  \n**Total files:** {file_count}")
 
-        # Files by extension as table
         if ext_count:
             df_ext = pd.DataFrame(
                 sorted(ext_count.items(), key=lambda x: -x[1]), columns=["Extension", "Count"]
             )
-            st.table(df_ext)  # Nice static table
+            st.table(df_ext)
         else:
             st.write("No files found in this folder.")
 
