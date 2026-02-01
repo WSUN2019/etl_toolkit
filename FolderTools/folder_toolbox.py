@@ -1,4 +1,6 @@
 # created on 1/31/2026 WSUN
+# using vibe coding w/ ChatGPT.
+# # Takes a while to get a decent script, so saving when I get a good one.
 # Simple Streamlit portal to access various helper tool files
 # First tool: FolderTreeMapper.py
 
